@@ -3,6 +3,21 @@ import { serialize } from 'cookie';
 import { client as WebSocketclient } from 'websocket';
 import { CLIENT_TOKEN, ACCESS_TOKEN } from './config';
 
+const token = {
+  ClientToken: CLIENT_TOKEN,
+  AccessToken: ACCESS_TOKEN,
+};
+
+export const MAX_AGE = 60 * 60 * 8 // 8 hours
+
+const cookie = serialize('Cookie', token, {
+  maxAge: MAX_AGE,
+  expires: new Date(Date.now() + MAX_AGE * 1000),
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  path: '/',
+});
+
 const client = new WebSocketclient();
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -24,7 +39,7 @@ app.get('*', (req, res) => {
   client.connect('wss://ws.mews-demo.com', {
     'origin': 'https://mybookings-payments.herokuapp.com',
     'headers': {
-      'Cookie': 'ClientToken=E0D439EE522F44368DC78E1BFB03710C-D24FB11DBE31D4621C4817E028D9E1D; AccessToken=C66EF7B239D24632943D115EDE9CB810-EA00F8FD8294692C940F6B5A8F9453D',
+      'set-cookie': cookie,
     }
   });
 
