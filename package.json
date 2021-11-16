@@ -20,8 +20,10 @@
   },
   "homepage": "https://github.com/labaas/mybookings-payments#readme",
   "dependencies": {
+    "bufferutil": "^4.0.5",
     "cookie": "^0.4.1",
     "express": "^4.17.1",
+    "utf-8-validate": "^5.0.7",
     "ws": "^8.2.3"
   },
   "devDependencies": {
