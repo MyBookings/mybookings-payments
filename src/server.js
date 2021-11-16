@@ -1,38 +1,37 @@
+import express from 'express';
 import { serialize } from 'cookie';
 import { client as WebSocketclient } from 'websocket';
-
-const CLIENT_TOKEN = 'E0D439EE522F44368DC78E1BFB03710C-D24FB11DBE31D4621C4817E028D9E1D';
-const ACCESS_TOKEN = 'C66EF7B239D24632943D115EDE9CB810-EA00F8FD8294692C940F6B5A8F9453D';
-
-const token = {
-  ClientToken: CLIENT_TOKEN,
-  AccessToken: ACCESS_TOKEN,
-};
-
-const cookie = serialize('token', token, {
-  httpOnly: true,
-  secure: true,
-  path: '/',
-  sameSite: 'lax',
-})
+import { CLIENT_TOKEN, ACCESS_TOKEN } from './config';
 
 const client = new WebSocketclient();
+const PORT = process.env.PORT || 3000;
+const app = express();
 
-client.on('connectFailed', (error) => {
-  console.log(error);
+app.get('*', (req, res) => {
+
+  client.on('connectFailed', (error) => {
+    console.log(error);
+  });
+  
+  client.on('connect', (connection) => {
+    console.log(connection);
+  });
+  
+  client.on('message', (message) => {
+    console.log(message);
+  });
+  
+  client.connect('wss://ws.mews-demo.com', {
+    'origin': 'https://mybookings-payments.herokuapp.com',
+    'headers': {
+      'Cookie': 'ClientToken=E0D439EE522F44368DC78E1BFB03710C-D24FB11DBE31D4621C4817E028D9E1D; AccessToken=C66EF7B239D24632943D115EDE9CB810-EA00F8FD8294692C940F6B5A8F9453D',
+    }
+  });
+
+  res.status(200).send('OK');
 });
 
-client.on('connect', (connection) => {
-  console.log(connection);
+app.listen(PORT, () => {
+  console.log(`Listening on PORT ${PORT}`);
 });
 
-client.on('message', (message) => {
-  console.log(message);
-});
-
-client.connect('wss://ws.mews-demo.com', {
-  'origin': 'https://mews-websocket.herokuapp.com',
-  'headers': {
-    'Cookie': cookie,
-  }
-});
