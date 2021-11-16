@@ -1,28 +1,12 @@
-import { Server } from 'ws';
-import express from 'express';
+import { WebSocketServer } from 'ws';
 
-const server = express();
-const PORT = process.env.PORT || 8000;
-
-server.use((req, res) => {
-  res.send('OK!');
-});
-
-server.listen(PORT, () => {
-  console.log(`Listening on PORT ${PORT}`);
-});
-
-const wss = new Server({ server });
+const wss = new WebSocketServer({ port: process.env.PORT || 8000 });
 
 wss.on('connection', (ws) => {
 
   ws.on('message', (message) => {
-    console.log(message);
+    console.log(JSON.parse(message));
   });
 
-  ws.on('close', () => console.log('Client disconnected'));
-
-  ws.send('Welcome!');
+  ws.send(JSON.stringify('WELCOME!!!'));
 });
-
-
