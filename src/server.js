@@ -37,10 +37,12 @@ ws.on('message', async (message) => {
   
   const parsed = JSON.parse(message);
   console.log(parsed);
+  
   const events = parsed.Events?.map(event => event);
+  if (!events) return;
 
   const reservationEvents = events.every(event => event.Type === 'Reservation');
-  if (!events || !reservationEvents) return;
+  if (!reservationEvents) return;
 
   const confirmedEvents = events.filter(event => event.State === 'Confirmed');
   if (!confirmedEvents[0]) return; 
