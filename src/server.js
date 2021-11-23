@@ -65,9 +65,9 @@ ws.on('message', async (message) => {
     },
   });
 
-  const newReservations = Reservations.every(event => {
-    let created = moment(event.CreatedUtc);
-    let updated = moment(event.UpdatedUtc);
+  const newReservations = Reservations.every(reservation => {
+    let created = moment(reservation.CreatedUtc);
+    let updated = moment(reservation.UpdatedUtc);
     let difference = updated.diff(created, 'seconds');
     if (difference > 2) return false;
     return true;
@@ -97,9 +97,9 @@ ws.on('message', async (message) => {
     },
   });
 
-  console.log(ReservationPrices[0].Total.Value);
+  const totalValue = ReservationPrices[0].Total.Value;
+  console.log(totalValue);
 
-  
 
   // const mollieClient = await createMollieClient({
   //   apiKey: MOLLIE_KEY,
