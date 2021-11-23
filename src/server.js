@@ -9,7 +9,7 @@ const CLIENT_TOKEN = process.env.CLIENT_TOKEN;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const MOLLIE_KEY = process.env.MOLLIE_KEY;
 
-const WEBSOCKET_ADRESS = 'wss://ws.mews-demo.com/ws/connector';
+const WEBSOCKET_URI = 'wss://ws.mews-demo.com/ws/connector';
 const GET_ALL_RESERVATIONS_URL = 'https://api.mews-demo.com/api/connector/v1/reservations/getAll';
 const GET_PRICE_RESERVATIONS_URL = 'https://api.mews-demo.com/api/connector/v1/reservations/price';
 
@@ -20,7 +20,7 @@ app.get('/', (req, res) => res.status(200).send('OK'));
 app.listen(PORT, () => console.log(`Listening on PORT ${PORT}`));
   
 const ws = new WebSocket(
-  WEBSOCKET_ADRESS,
+  WEBSOCKET_URI,
   [],
   {
     'headers': {
@@ -73,9 +73,7 @@ ws.on('message', async (message) => {
 
   if (!newReservations) return;
 
-  const rateIds = Reservations.map(
-    (reservation) => reservation.RateId
-  );
+  const rateIds = Reservations.map(reservation => reservation.RateId);
 
   const rates = rateIds.map(rateId => {
     return Rates.find(rate => {
