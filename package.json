@@ -21,10 +21,13 @@
   "homepage": "https://github.com/labaas/mybookings-payments#readme",
   "dependencies": {
     "@mollie/api-client": "^3.5.1",
+    "aws-sdk": "^2.1035.0",
     "axios": "^0.24.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "moment": "^2.29.1",
+    "mongoose": "^6.0.13",
+    "ngrok": "^4.2.2",
     "nodemailer": "^6.7.1",
     "ws": "^8.2.3"
   },
