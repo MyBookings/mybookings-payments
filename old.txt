@@ -1,3 +1,18 @@
+// jsconfig.json
+
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "baseUrl": "."
+  },
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*"
+  ]
+}
+
+// webpack.config.js
+
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
@@ -27,3 +42,26 @@ module.exports = {
     new CleanWebpackPlugin(),
   ],
 };
+
+// .babelrc
+
+const path = require('path');
+const jsConfig = require('./jsconfig.json');
+
+module.exports = {
+  presets: [
+    ["env", {
+      "targets": {
+        "node": "current"
+      }
+    }]
+  ],
+  plugins: [
+    [
+      'module-resolver',
+      {
+        root: [path.resolve(jsConfig.compilerOptions.baseUrl)],
+      }
+    ]
+  ]
+}

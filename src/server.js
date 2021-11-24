@@ -6,10 +6,11 @@ import moment from 'moment';
 import createMollieClient from '@mollie/api-client';
 import nodemailer from 'nodemailer';
 import AWS from 'aws-sdk';
-import { getEmailTemplate } from 'lib/html-template';
-import { connectDB } from 'lib/connect-db';
-import { Order } from 'models/Order';
+import { getEmailTemplate } from '../lib/html-template';
+import { connectDB } from '../lib/connect-db';
+import { Order } from '../models/Order';
 import ngrok from 'ngrok';
+import next from 'next';
 
 const CLIENT_TOKEN = process.env.CLIENT_TOKEN;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
@@ -34,12 +35,39 @@ const GET_ALL_RESERVATIONS_URL = 'https://api.mews-demo.com/api/connector/v1/res
 const GET_PRICE_RESERVATIONS_URL = 'https://api.mews-demo.com/api/connector/v1/reservations/price';
 
 const PORT = process.env.PORT || 8000;
-const app = express();
 
-app.get('/', (req, res) => res.status(200).send('OK'));
-app.get('/api/webhook', (req, res) => res.status(200).send('OK'));
-app.get('/orders/:id', (req, res) => res.status(200).send('OK'));
-app.listen(PORT, () => console.log(`Listening on PORT ${PORT}`));
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev });
+const handle = app.getRequestHandler();
+
+app.prepare().then(() => {
+
+  const server = express();
+  server.use(express.json());
+
+  server.get('/', (req, res) => {
+    const { query } = req;
+    app.render(req, res, '/', query);
+  });
+  
+  server.get('/orders:order', (req, res) => {
+    const { query, params } = req;
+    app.render(req, res, '/orders:order', query, params);
+  });
+  
+  server.get('/api/webhook', (req, res) => {
+    return res.send('OK');
+  });
+
+  server.get('*', (req, res) => {
+    return handle(req, res);
+  });
+
+  server.listen(PORT, (err) => {
+    if (err) throw err;
+    console.log(`Listening on PORT ${PORT}`);
+  });
+});
   
 const ws = new WebSocket(
   WEBSOCKET_URI,
@@ -141,16 +169,14 @@ ws.on('message', async (message) => {
 
   const orderId = order._id;
 
-  const mollieClient = await createMollieClient({
-    apiKey: MOLLIE_KEY,
-  });
+  const mollieClient = await createMollieClient({ apiKey: MOLLIE_KEY });
 
   const ngrokTunnel = process.env.NODE_ENV === 'production'
-    ? null
+    ? ''
     : await ngrok.connect(8000)
 
   const url = process.env.NODE_ENV === 'production'
-    ? 'https://innerlijk-werk.nl'
+    ? ''
     : ngrokTunnel
   
   const payment = await mollieClient.payments.create({
@@ -172,7 +198,7 @@ ws.on('message', async (message) => {
 
   const checkoutUrl = await payment.getCheckoutUrl();
 
-  const html = getEmailTemplate({ url: checkoutUrl, totalValue, });
+  const html = getEmailTemplate({ checkoutUrl, totalValue, });
 
   const res = await transporter.sendMail({
     from: 'sancus88@protonmail.com',
