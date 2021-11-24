@@ -11,6 +11,8 @@ import { connectDB } from '../lib/connect-db';
 import { Order } from '../models/Order';
 import ngrok from 'ngrok';
 import next from 'next';
+import cors from 'cors';
+import bodyParser from 'body-parser';
 
 const CLIENT_TOKEN = process.env.CLIENT_TOKEN;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
@@ -40,25 +42,51 @@ const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
+const corsOptions = {
+  origin: '*',
+  methods: ['POST'],
+};
+
 app.prepare().then(() => {
 
   const server = express();
-  server.use(express.json());
+  // server.use(bodyParser.urlencoded({ extended: false }));
 
-  server.get('/', (req, res) => {
-    const { query } = req;
-    app.render(req, res, '/', query);
+  server.post('/api/webhook', [cors(corsOptions), bodyParser.urlencoded({ extended: false })], async (req, res) => {
+    
+    const id = req.body?.id;
+    if (!id) res.status(400).end();
+    
+    await connectDB();
+    
+    const client = createMollieClient({ apiKey: MOLLIE_KEY });
+    const payment = await client.payments.get(id);
+
+    const order = await Order.findById(payment.metadata.orderId);
+    await order.set({ status: payment.status });
+    await order.save();
+    
+    return res.status(200).end();
+  });
+
+  server.post('/api/get-order', express.json(), async (req, res) => {
+    await connectDB();
+    const orderId = req.body.orderId;
+    const order = await Order.findById(orderId);
+
+    res.status(200).json({ status: order.status });
   });
   
   server.get('/orders:order', (req, res) => {
     const { query, params } = req;
     app.render(req, res, '/orders:order', query, params);
   });
-  
-  server.get('/api/webhook', (req, res) => {
-    return res.send('OK');
-  });
 
+  server.get('/', (req, res) => {
+    const { query } = req;
+    app.render(req, res, '/', query);
+  });
+  
   server.get('*', (req, res) => {
     return handle(req, res);
   });
@@ -178,6 +206,8 @@ ws.on('message', async (message) => {
   const url = process.env.NODE_ENV === 'production'
     ? ''
     : ngrokTunnel
+
+  console.log(url);
   
   const payment = await mollieClient.payments.create({
     amount: {

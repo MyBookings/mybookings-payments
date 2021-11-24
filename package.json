@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon --exec babel-node src/server.js",
     "build": "webpack --config webpack.config.js",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "ngrok": "ngrok http 8000"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,8 @@
     "@mollie/api-client": "^3.5.1",
     "aws-sdk": "^2.1035.0",
     "axios": "^0.24.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "moment": "^2.29.1",
